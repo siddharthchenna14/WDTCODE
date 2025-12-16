@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Integrated Trip Planner (with History)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 40px 20px;
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+        .main-container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+            width: 100%;
+            max-width: 800px;
+        }
+
+        /* --- Global Sections & Tabs --- */
+        .tab-bar {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .tab-button {
+            background: none;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            color: #555;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button.active {
+            color: #1a73e8;
+            border-bottom: 3px solid #1a73e8;
+        }
+
+        .content-section {
+            display: none; /* Hidden by default */
+        }
+        .content-section.active {
+            display: block;
+        }
+
+        /* --- Form Styling --- */
+        h2 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        button.primary-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+            margin-top: 15px;
+        }
+
+        button.primary-btn:hover {
+            background-color: #45a049;
+        }
+
+        /* --- Summary Styling --- */
+        #summarySection {
+            display: none; /* Hidden by default */
+        }
+
+        h1 {
+            color: #1a73e8;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        h3 {
+            color: #333;
+            margin-top: 25px;
+            border-left: 5px solid #ff9900;
+            padding-left: 10px;
+        }
+
+        .detail-box {
+            background-color: #f7f9fc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .detail-box p {
+            margin: 5px 0;
+        }
+
+        ul {
+            list-style: disc;
+            margin-left: 20px;
+            padding: 10px 0;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .schedule-item {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px dashed #ccc;
+            border-radius: 6px;
+            background-color: #fafafa;
+        }
+        .schedule-item strong {
+            color: #007bff;
+        }
+
+        /* --- History Styling --- */
+        .history-card {
+            border: 1px solid #eee;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: box-shadow 0.2s ease;
+        }
+        .history-card:hover {
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .history-card strong {
+            color: #1a73e8;
+        }
+        .no-history {
+            text-align: center;
+            color: #888;
+            padding: 30px;
+            border: 1px dashed #ccc;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+
+        <div class="tab-bar">
+            <button class="tab-button active" onclick="showTab('newPlanTab')">🌎 New Trip Plan</button>
+            <button class="tab-button" onclick="showTab('historyTab')">📜 Past Trips</button>
+            <button class="tab-button" onclick="showTab('accountTab')">👤 Account Details</button>
+        </div>
+        
+        <div id="newPlanTab" class="content-section active">
+            <div id="formSection">
+                <h2>✈ Plan Your Trip</h2>
+
+                <form id="tripForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="startingPoint">Starting Point:</label>
+                            <input type="text" id="startingPoint" name="startingPoint" placeholder="e.g., London, UK" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="endingPoint">Ending Point:</label>
+                            <input type="text" id="endingPoint" name="endingPoint" placeholder="e.g., Tokyo, Japan" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="totalDays">Total Days of Trip:</label>
+                            <input type="number" id="totalDays" name="totalDays" min="1" placeholder="e.g., 7" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="estimatedBudget">Estimated Budget (USD):</label>
+                            <input type="number" id="estimatedBudget" name="estimatedBudget" min="100" placeholder="e.g., 2500" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="foodPreference">Food Preference:</label>
+                        <select id="foodPreference" name="foodPreference" required>
+                            <option value="">-- Select Preference --</option>
+                            <option value="Vegetarian">Vegetarian</option>
+                            <option value="Vegan">Vegan</option>
+                            <option value="Non-Vegetarian">Non-Vegetarian</option>
+                            <option value="No Restriction">No Restriction</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" id="planButton" class="primary-btn">Generate Trip Summary</button>
+                </form>
+            </div>
+
+            <div id="summarySection">
+                <h1 id="tripTitle">Your Personalized Trip Summary</h1>
+                
+                <div id="tripDetails" class="detail-box"></div>
+
+                <h3>🗓 Scheduled Plan Overview</h3>
+                <div id="dailySchedule"></div>
+
+                <h3>🍽 Culinary Recommendations</h3>
+                <div id="foodSuggestions">
+                    <p>Based on your *food preference*, here are some generic cuisine ideas for a great journey:</p>
+                    <ul id="foodList"></ul>
+                </div>
+
+                <h3>⛰ Adventure Ideas</h3>
+                <div id="adventureSuggestions">
+                    <p>To maximize your adventure during your trip, consider these activities:</p>
+                    <ul>
+                        <li>Try a *local cooking class* in your destination city.</li>
+                        <li>Seek out the best *hiking or cycling routes* near your final stop.</li>
+                        <li>Plan for a day trip to the closest *natural wonder* (e.g., national park, major coastline).</li>
+                        <li>Explore a historic *market or bazaar* for unique souvenirs.</li>
+                    </ul>
+                </div>
+                
+                <button onclick="window.location.reload();" class="primary-btn">Start a New Plan</button>
+            </div>
+        </div>
+        
+        <div id="historyTab" class="content-section">
+            <h2>📜 Past Trip Plans</h2>
+            <div id="historyList">
+                <p class="no-history">Loading trip history...</p>
+            </div>
+        </div>
+
+        <div id="accountTab" class="content-section">
+            <h2>👤 Account & Settings</h2>
+            <div class="detail-box">
+                <p><strong>Username:</strong> Traveler-101</p>
+                <p><strong>Membership Status:</strong> Free Tier</p>
+                <p><strong>Last Activity:</strong> <span id="lastActivity">N/A</span></p>
+                <p><strong>Total Plans Saved:</strong> <span id="totalPlans">0</span></p>
+                <p><em>(In a real application, this data would be fetched from a server.)</em></p>
+            </div>
+            <button onclick="clearHistory()" class="primary-btn" style="background-color: #dc3545;">Clear All History</button>
+        </div>
+        
+    </div>
+<script>
+    const tripForm = document.getElementById('tripForm');
+    const summarySection = document.getElementById('summarySection');
+    const formSection = document.getElementById('formSection');
+
+    const foodMap = {
+        'Vegetarian': ['Local veg curry/stew.', 'Artisanal cheese and bread.', 'Gourmet mushroom risotto.', 'Seasonal veggie dish.'],
+        'Vegan': ['Lentil/bean based local dishes.', 'Fresh fruit and veggie smoothies.', 'Tofu or Seitan based entrées.', 'Whole grain pasta with marinara.'],
+        'Non-Vegetarian': ['Local grilled meat or seafood.', 'Street food like tacos/kebabs.', 'Signature dishes with poultry or beef.', 'Fresh fish.'],
+        'No Restriction': ['Try the most famous dish of the city!', 'Visit a Michelin-starred restaurant.', 'Sample all the street food options.', 'Book a food tour for diverse flavors.']
+    };
+
+    function generateSchedule(days) {
+        const container = document.getElementById('dailySchedule');
+        container.innerHTML = '';
+        const numDays = parseInt(days);
+
+        for (let i = 1; i <= numDays; i++) {
+            let plan = '';
+            if (i === 1) {
+                plan = 'Travel day / Check-in to accommodation and local orientation.';
+            } else if (i === numDays) {
+                plan = 'Last minute souvenir shopping / Travel to airport/station for departure.';
+            } else if (i % 2 === 0) {
+                plan = 'Explore the city\'s main tourist landmarks and historical sites.';
+            } else {
+                plan = 'Day trip to a nearby attraction or cultural deep dive.';
+            }
+
+            const item = document.createElement('div');
+            item.className = 'schedule-item';
+            item.innerHTML = `<strong>Day ${i}:</strong> ${plan}`;
+            container.appendChild(item);
+        }
+    }
+
+    function loadHistory() {
+        const historyList = document.getElementById('historyList');
+        const trips = JSON.parse(localStorage.getItem('pastTrips') || '[]');
+        historyList.innerHTML = '';
+
+        if (trips.length === 0) {
+            historyList.innerHTML = '<p class="no-history">You have no saved trip plans yet. Start planning!</p>';
+        } else {
+            trips.slice().reverse().forEach((trip, index) => {
+                const card = document.createElement('div');
+                card.className = 'history-card';
+                card.innerHTML = `
+                    <p><strong>Trip ${trips.length - index}:</strong> ${trip.start} ➡ ${trip.end}</p>
+                    <p>Duration: ${trip.days} days | Budget: $${trip.budget} | Food: ${trip.food}</p>
+                    <p><em>Planned on: ${trip.date}</em></p>
+                `;
+                historyList.appendChild(card);
+            });
+        }
+
+        document.getElementById('totalPlans').textContent = trips.length;
+        document.getElementById('lastActivity').textContent =
+            trips.length > 0 ? trips[trips.length - 1].date : 'N/A';
+    }
+
+    function saveTrip(tripData) {
+        const trips = JSON.parse(localStorage.getItem('pastTrips') || '[]');
+        tripData.date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+        trips.push(tripData);
+        localStorage.setItem('pastTrips', JSON.stringify(trips));
+        loadHistory();
+    }
+
+    function clearHistory() {
+        if (confirm("Are you sure you want to delete ALL past trip history?")) {
+            localStorage.removeItem('pastTrips');
+            loadHistory();
+            alert("Trip history cleared!");
+        }
+    }
+
+    function showTab(tabId) {
+        document.querySelectorAll('.content-section').forEach(section => section.classList.remove('active'));
+        document.querySelectorAll('.tab-button').forEach(button => button.classList.remove('active'));
+
+        document.getElementById(tabId).classList.add('active');
+
+        document.querySelectorAll('.tab-button').forEach(btn => {
+            if (btn.getAttribute('onclick') === `showTab('${tabId}')`) {
+                btn.classList.add('active');
+            }
+        });
+
+        if (tabId === 'historyTab' || tabId === 'accountTab') {
+            loadHistory();
+        }
+    }
+
+    function handleSubmission(event) {
+        event.preventDefault();
+
+        if (tripForm.checkValidity()) {
+            const start = document.getElementById('startingPoint').value.trim();
+            const end = document.getElementById('endingPoint').value.trim();
+            const days = document.getElementById('totalDays').value.trim();
+            const budget = document.getElementById('estimatedBudget').value.trim();
+            const food = document.getElementById('foodPreference').value.trim();
+
+            const tripData = { start, end, days, budget, food };
+
+            saveTrip(tripData);
+
+            alert("🎉 Success! Trip saved and summary generated.");
+
+            document.getElementById('tripTitle').textContent =
+                `Your ${days}-Day Trip from ${start} to ${end}`;
+
+            document.getElementById('tripDetails').innerHTML = `
+                <p><strong>Departure:</strong> ${start}</p>
+                <p><strong>Destination:</strong> ${end}</p>
+                <p><strong>Duration:</strong> ${days} days</p>
+                <p><strong>Estimated Budget:</strong> $${budget} USD</p>
+                <p><strong>Food Preference:</strong> ${food}</p>
+            `;
+
+            generateSchedule(days);
+
+            const foodListElement = document.getElementById('foodList');
+            const selectedFoods = foodMap[food] || foodMap['No Restriction'];
+            foodListElement.innerHTML = '';
+            selectedFoods.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = item;
+                foodListElement.appendChild(li);
+            });
+
+            formSection.style.display = 'none';
+            summarySection.style.display = 'block';
+        }
+    }
+
+    tripForm.addEventListener('submit', handleSubmission);
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadHistory();
+        formSection.style.display = 'block';
+        summarySection.style.display = 'none';
+    });
+</script>
+
+
+</body>
+</html>
